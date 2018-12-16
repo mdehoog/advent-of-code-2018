@@ -25,23 +25,17 @@ potential_mapping = COMMANDS.keys.map { |k| [k, Set.new] }.to_h
 # part 1
 
 part1 = File.read('day16part1.txt').split("\n\n").map do |p1|
-  lines = p1.split("\n")
-  {
-    before: lines[0].split(' ').map(&:to_i),
-    command: lines[1].split(' ').map(&:to_i),
-    after: lines[2].split(' ').map(&:to_i)
-  }
+  %i[before command after].zip(p1.split("\n").map do |line|
+    line.split(' ').map(&:to_i)
+  end).to_h
 end
 
 total = part1.count do |p1|
-  before = p1[:before]
-  command = p1[:command]
-  after = p1[:after]
   matching = COMMANDS.count do |k, v|
-    registers = before.clone
-    v.call(registers, command[1], command[2], command[3])
-    potential_mapping[k] << command[0] if registers == after
-    registers == after
+    registers = p1[:before].clone
+    v.call(registers, *p1[:command][1..-1])
+    potential_mapping[k] << p1[:command][0] if registers == p1[:after]
+    registers == p1[:after]
   end
   matching >= 3
 end
