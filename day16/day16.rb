@@ -20,10 +20,11 @@ COMMANDS = {
   eqrr: ->(registers, a, b, c) { registers[c] = registers[a] == registers[b] ? 1 : 0 },
 }.freeze
 
-input1 = File.read('day16part1.txt')
-part1 = input1.split("\n\n")
+potential_mapping = COMMANDS.keys.map { |k| [k, Set.new] }.to_h
 
-part1 = part1.map do |p1|
+# part 1
+
+part1 = File.read('day16part1.txt').split("\n\n").map do |p1|
   lines = p1.split("\n")
   {
     before: lines[0].split(' ').map(&:to_i),
@@ -32,8 +33,6 @@ part1 = part1.map do |p1|
   }
 end
 
-mapping = COMMANDS.keys.map { |k| [k, Set.new] }.to_h
-
 total = part1.count do |p1|
   before = p1[:before]
   command = p1[:command]
@@ -41,34 +40,32 @@ total = part1.count do |p1|
   matching = COMMANDS.count do |k, v|
     registers = before.clone
     v.call(registers, command[1], command[2], command[3])
-    mapping[k] << command[0] if registers == after
+    potential_mapping[k] << command[0] if registers == after
     registers == after
   end
   matching >= 3
 end
+
 puts "Total with more than 3: #{total}"
 
-graph = mapping.map.with_index do |(_, v), i|
+# part 2
+
+graph_indices = potential_mapping.map.with_index do |(_, v), i|
   v.map { |j| [i + 1, j + 17] }
 end.flatten
 
-g = GraphMatching::Graph::Bigraph[*graph]
-m = g.maximum_cardinality_matching
-mapping = m.edges
+bipartite_graph = GraphMatching::Graph::Bigraph[*graph_indices]
+matching = bipartite_graph.maximum_cardinality_matching
+mapping = matching.edges.map { |i, j| [i - 17, COMMANDS.keys[j - 1]] }.to_h
 
-commands = mapping.map do |i, j|
-  i -= 16
-  [i - 1, COMMANDS.keys[j - 1]]
-end.to_h
-
-puts "Command mapping: #{commands.inspect}"
+puts "Command mapping: #{mapping.inspect}"
 
 input2 = File.read('day16part2.txt')
 part2 = input2.split("\n").map { |s| s.split(' ').map(&:to_i) }
 
 registers = [0, 0, 0]
 part2.each do |command|
-  COMMANDS[commands[command[0]]].call(registers, command[1], command[2], command[3])
+  COMMANDS[mapping[command[0]]].call(registers, *command[1..-1])
 end
 
 puts "Final registers: #{registers.inspect}"
