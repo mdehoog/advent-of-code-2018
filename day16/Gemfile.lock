@@ -1,0 +1,18 @@
+GEM
+  specs:
+    graph_matching (0.1.1)
+      rgl (~> 0.5.0)
+    lazy_priority_queue (0.1.1)
+    rgl (0.5.3)
+      lazy_priority_queue (~> 0.1.0)
+      stream (~> 0.5.0)
+    stream (0.5)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  graph_matching
+
+BUNDLED WITH
+   1.16.3
